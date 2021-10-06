@@ -11,6 +11,9 @@ router.post('/getuser', controllersAuth.getuser);
 router.post('/setball', controllersAuth.setball);
 router.post('/history', controllersAuth.history);
 router.post('/setIssue', controllersAuth.setIssue);
+router.post('/draw', controllersAuth.draw);
+router.post('/exchange', controllersAuth.exchange);
+router.post('/status', controllersAuth.status);
 
 
 module.exports = router;
