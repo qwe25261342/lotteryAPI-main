@@ -10,7 +10,7 @@ async function exchange() {
             const issue = getHistory[i].issue;
             const giveaMountId = getHistory[i].user_id;
             const dataID = getHistory[i].id;
-            console.log(dataID);
+            //console.log(dataID);
             const amount = getHistory[i].settle_amount;
             //從購買過的期數取相對應期數的開獎球號
             const getlottery = `SELECT n1,n2,n3,n4,n5 FROM lottery_issues WHERE issue =? AND status = 1`
@@ -23,8 +23,9 @@ async function exchange() {
             const arrA = [result[0].n1, result[0].n2, result[0].n3, result[0].n4, result[0].n5]
             const arrB = [getHistory[i].settle_n1, getHistory[i].settle_n2, getHistory[i].settle_n3, getHistory[i].settle_n4, getHistory[i].settle_n5]
             const newArray = arrB.filter((element) => arrA.indexOf(element) === -1)
+            //更新購買紀錄 結算與獲得金額(兌獎)
+            const giveamount = `UPDATE settle_history SET status = 1, gain_amount =?, updated_at=? WHERE id=? AND status =0 `
             if (newArray.length == 3) {
-                const giveamount = `UPDATE settle_history SET status = 1, gain_amount =?, updated_at=?  WHERE id=? AND status =0 `
                 const params = [ amount*2, updated_at, dataID]
                 await runQuery(giveamount, params)
                 const balance = idBalance[0].balance +amount*2;
@@ -34,7 +35,6 @@ async function exchange() {
                 continue
             }
             if (newArray.length == 2) {
-                const giveamount = `UPDATE settle_history SET status = 1, gain_amount =?, updated_at=? WHERE id=? AND status =0 `
                 const params = [ amount*5, updated_at, dataID]
                 await runQuery(giveamount, params)
                 const balance = idBalance[0].balance +amount*5;
@@ -44,7 +44,6 @@ async function exchange() {
                 continue
             }
             if (newArray.length == 1) {
-                const giveamount = `UPDATE settle_history SET status = 1, gain_amount =?, updated_at=? WHERE id=? AND status =0 `
                 const params = [ amount*500, updated_at, dataID]
                 await runQuery(giveamount, params)
                 const balance = idBalance[0].balance +amount*500;
@@ -54,7 +53,6 @@ async function exchange() {
                 continue
             }
             if (newArray.length == 0) {
-                const giveamount = `UPDATE settle_history SET status = 1, gain_amount =?, updated_at=? WHERE id=?AND status =0 `
                 const params = [ amount*1000, updated_at, dataID]
                 await runQuery(giveamount, params)
                 const balance = idBalance[0].balance +amount*1000;
@@ -64,7 +62,6 @@ async function exchange() {
                 continue
             }
             else {
-                const giveamount = `UPDATE settle_history SET status = 1, gain_amount =?, updated_at=? WHERE id=? AND status =0 `
                 const params = [ amount*0, updated_at, dataID]
                 await runQuery(giveamount, params)
                 console.log("沒中");

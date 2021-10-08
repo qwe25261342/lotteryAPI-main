@@ -10,5 +10,6 @@ router.post('/setball', controllersAuth.setball);
 router.post('/history', controllersAuth.history);
 router.post('/setIssue', controllersAuth.setIssue);
 router.post('/status', controllersAuth.status);
+router.post('/thisIssue', controllersAuth.thisIssue);
 
 module.exports = router;

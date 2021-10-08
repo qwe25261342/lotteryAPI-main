@@ -3,9 +3,13 @@ const EventEmitter = require('events');
 
 //值傳送給socket
 class Logger extends EventEmitter {
-    log(arr) {
-        this.emit('openBall', arr);
-        console.log(arr);
+    openBall(openBall) {
+        this.emit('openBall', openBall);
+        // console.log(openBall);
+    }
+    evenIssue(param){
+        this.emit('getIssue', param)
+        //console.log(param);
     }
 }
 
