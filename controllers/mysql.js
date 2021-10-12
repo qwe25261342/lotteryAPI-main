@@ -2,7 +2,6 @@
 const moment = require('moment');
 const uuid = require('uuid');
 const runQuery = require('../database/runquery')
-const logger = require('../database/enve')
 
 //登入
 exports.login = async (req, res) => {
@@ -56,11 +55,7 @@ exports.register = async (req, res) => {
 //取得使用者
 exports.getuser = async (req, res) => {
   try {
-    const req_params = req.body.params
-    const token = req_params.token;
-    const getId = 'SELECT user_id FROM tokens where tokens= ? '
-    const data = await runQuery(getId, token)
-    const user_id = data[0].user_id
+    const user_id = req.user_id[0].user_id;
     const getUser = 'SELECT nickname, balance FROM users where id= ?'
     const result = await runQuery(getUser, user_id)
     res.send(result)
@@ -68,7 +63,8 @@ exports.getuser = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.send({
-      errorMessage: error
+      success: false,
+      Message: error
 
     })
   }
@@ -79,10 +75,11 @@ exports.setball = async (req, res) => {
     const time = new Date()
     let open_start = Date.parse(time)
     const issue = Math.floor(moment(open_start).format('YYYYMMDDHHmm') / 10) + '0'
-    //關盤一分鐘
     const close_at = `SELECT close_at  FROM lottery_issues WHERE issue = ? `
-    const x = await runQuery(close_at, issue)
-    const closeTime = Date.parse(x[0].close_at);
+    const close = await runQuery(close_at, issue)
+    const closeTime = Date.parse(close[0].close_at);
+    const user_id = req.user_id[0].user_id;
+    //關盤一分鐘
     const closeOne = Date.parse(moment(closeTime).add(1, "m"))
     if (closeTime <= time && time <= closeOne) {
       console.log("關盤中");
@@ -90,39 +87,53 @@ exports.setball = async (req, res) => {
         message: "關盤中",
         closing: true
       })
-      return 
-    } else {
-      const req_params = req.body.params
-      const settle_n1 = req_params.n1
-      const settle_n2 = req_params.n2
-      const settle_n3 = req_params.n3
-      const settle_n4 = req_params.n4
-      const settle_n5 = req_params.n5
-      const token = req_params.token;
-      const getId = 'SELECT user_id FROM tokens WHERE tokens= ? '
-      const user_id = await runQuery(getId, token)
-      const user_id1 = user_id[0].user_id;
-      const params = [user_id1, issue, settle_n1, settle_n2, settle_n3, settle_n4, settle_n5, time, time]
-      //增加投注資料
-      const sql = `INSERT INTO settle_history
+      return
+    }
+
+
+    const req_params = req.body.params
+    const settle_n1 = req_params.n1
+    const settle_n2 = req_params.n2
+    const settle_n3 = req_params.n3
+    const settle_n4 = req_params.n4
+    const settle_n5 = req_params.n5
+    //擋輸入值重複
+    const newArr = [settle_n1, settle_n2, settle_n3, settle_n4, settle_n5];
+    const repeat = newArr.filter((element, index, arr) => {
+      return arr.indexOf(element) !== index;
+    })
+    if (repeat.length > 0) {
+      return;
+    }
+    const getbalance = `SELECT id, balance FROM users WHERE id=? `
+    const userBalance1 = await runQuery(getbalance, user_id)
+    //餘額不足50
+    if (userBalance1[0].balance < 50) {
+      console.log("111");
+      res.send({
+        money: false
+      })
+      return;
+    }
+    const params = [user_id, issue, settle_n1, settle_n2, settle_n3, settle_n4, settle_n5, time, time]
+    //增加投注資料
+    const sql = `INSERT INTO settle_history
       (user_id, issue, settle_n1, settle_n2, settle_n3, settle_n4, settle_n5, status, settle_amount, updated_at, created_at)
        VALUES( ?, ?, ?, ?, ?, ?, ?, 0, 50, ?, ?)`
-      await runQuery(sql, params)
-      const getbalance = `SELECT id, balance FROM users WHERE id=? `
-      const userBalance1 = await runQuery(getbalance, user_id1)
-      const userBalance = userBalance1[0].balance - 50;
-      const updatedBalance = `UPDATE users SET balance=?, updated_at=? WHERE id=?`
-      const updatedmoney = [userBalance, time, user_id1]
-      await runQuery(updatedBalance, updatedmoney)
-      res.send({
-        message: "購買成功",
-        closing: false
-      })
-    }
+    await runQuery(sql, params)
+    const userBalance = userBalance1[0].balance - 50;
+    const updatedBalance = `UPDATE users SET balance=?, updated_at=? WHERE id=?`
+    const updatedmoney = [userBalance, time, user_id]
+    await runQuery(updatedBalance, updatedmoney)
+    res.send({
+      message: "購買成功",
+      closing: false
+    })
 
   } catch (error) {
     console.log(error);
     res.send({
+      number: false,
       message: error
     })
   }
@@ -130,18 +141,15 @@ exports.setball = async (req, res) => {
 //投注紀錄
 exports.history = async (req, res) => {
   try {
-    const req_params = req.body.params
-    const token = req_params.token;
-    const getId = 'SELECT user_id FROM tokens WHERE tokens= ? '
-    const user_id = await runQuery(getId, token)
-    const user_id1 = user_id[0].user_id;
+    const user_id = req.user_id[0].user_id;
     const sql = `SELECT  issue, settle_n1, settle_n2, settle_n3, settle_n4, settle_n5, status, gain_amount,id FROM settle_history WHERE user_id = ?`
-    const result = await runQuery(sql, user_id1)
+    const result = await runQuery(sql, user_id)
     // console.log(result)
     res.send(result)
   } catch (error) {
     console.log(error);
     res.send({
+      success: false,
       message: error
     })
   }
@@ -187,6 +195,7 @@ exports.status = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.send({
+      success: false,
       message: error
     })
   }
@@ -200,6 +209,7 @@ exports.thisIssue = async (req, res) => {
   } catch (error) {
     console.log(error);
     res.send({
+      success: false,
       message: error
     })
   }
