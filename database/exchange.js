@@ -3,6 +3,7 @@ const runQuery = require('./runquery');
 
 async function exchange() {
     try {
+        //取購買過未兌獎的資料
         const sql = `SELECT id, user_id, issue, settle_n1, settle_n2, settle_n3, settle_n4, settle_n5, settle_amount FROM settle_history WHERE status=0`
         const updated_at = new Date()
         const getHistory = await runQuery(sql)
@@ -71,8 +72,5 @@ async function exchange() {
     } catch (error) {
         console.log("[ 未開獎 ]");
     }
-    //取購買紀錄的期數與球號
-
 }
-
 module.exports = exchange

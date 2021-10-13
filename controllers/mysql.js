@@ -22,7 +22,12 @@ exports.login = async (req, res) => {
     await runQuery(addtoken, tokenparams);
     const usetoken = 'SELECT tokens FROM tokens WHERE user_id = ?'
     await runQuery(usetoken, user_id);
-    res.send({ data: result, success: true, message: '登入成功!', token: tokenparams[0] })
+    res.send({
+      data: result, 
+      success: true, 
+      message: '登入成功!',
+      token: tokenparams[0] 
+    })
   } catch (error) {
     console.log(error);
     res.send({
@@ -84,13 +89,10 @@ exports.setball = async (req, res) => {
     if (closeTime <= time && time <= closeOne) {
       console.log("關盤中");
       res.send({
-        message: "關盤中",
         closing: true
       })
       return
     }
-
-
     const req_params = req.body.params
     const settle_n1 = req_params.n1
     const settle_n2 = req_params.n2
@@ -103,13 +105,15 @@ exports.setball = async (req, res) => {
       return arr.indexOf(element) !== index;
     })
     if (repeat.length > 0) {
+      res.send({
+        repeat: true
+      })
       return;
     }
     const getbalance = `SELECT id, balance FROM users WHERE id=? `
     const userBalance1 = await runQuery(getbalance, user_id)
     //餘額不足50
     if (userBalance1[0].balance < 50) {
-      console.log("111");
       res.send({
         money: false
       })
