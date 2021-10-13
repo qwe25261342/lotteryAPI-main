@@ -14,21 +14,21 @@ async function call() {
     console.log(close_time);
     for (let i = 0; i < result.length; i++) {
         const issue = result[i].issue
-                const ball = await shuffle1()
-                const n1 = ball[0]
-                const n2 = ball[1]
-                const n3 = ball[2]
-                const n4 = ball[3]
-                const n5 = ball[4]
-                const params = [n1, n2, n3, n4, n5, time, issue]
-                const setissue = `UPDATE lottery_issues SET n1 = ?, n2= ?, n3= ?, n4= ?, n5= ?, updated_at= ?, status=1 WHERE status = 0 AND issue=?`
-                await runQuery(setissue, params)
-                logger.openBall("openball")
-                const getIssue = `SELECT issue FROM lottery_issues WHERE status=0 AND open_at <= ? AND close_at > ?`
-                const alltime = [close_time,close_time]
-                await runQuery(getIssue,alltime)
-                logger.evenIssue("nextIssue")
-        }   
+        const ball = await shuffle1()
+        const n1 = ball[0]
+        const n2 = ball[1]
+        const n3 = ball[2]
+        const n4 = ball[3]
+        const n5 = ball[4]
+        const params = [n1, n2, n3, n4, n5, time, issue]
+        const setissue = `UPDATE lottery_issues SET n1 = ?, n2= ?, n3= ?, n4= ?, n5= ?, updated_at= ?, status=1 WHERE status = 0 AND issue=?`
+        await runQuery(setissue, params)
+        logger.openBall("openball")
+        const getIssue = `SELECT issue FROM lottery_issues WHERE status=0 AND open_at <= ? AND close_at > ?`
+        const alltime = [close_time, close_time]
+        await runQuery(getIssue, alltime)
+        logger.evenIssue("nextIssue")
+    }
 }
 let rule = new schedule.RecurrenceRule();
 rule.second = [0, 10, 20, 30, 40, 50];// 每隔 10秒执行一次

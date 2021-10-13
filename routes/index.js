@@ -4,7 +4,6 @@ const router = express.Router();
 const controllersAuth = require('../controllers/mysql');
 const token = require('./token');
 
-
 router.get('/login', controllersAuth.login);
 router.post('/register', controllersAuth.register);
 router.post('/token/getuser',token , controllersAuth.getuser);

@@ -3,7 +3,6 @@ const express = require('express');
 const router = express.Router();
 const runQuery = require('../database/runquery');
 
-
 router.use('/token', async (req, res, next) => {
     try {
         const req_params = req.body

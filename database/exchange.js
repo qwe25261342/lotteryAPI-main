@@ -17,7 +17,7 @@ async function exchange() {
             const getlottery = `SELECT n1,n2,n3,n4,n5 FROM lottery_issues WHERE issue =? AND status = 1`
             //取得相對應的ID,取user點數
             const getbalance = `SELECT id, balance FROM users WHERE id=? `
-            const idBalance = await runQuery(getbalance,  giveaMountId)
+            const idBalance = await runQuery(getbalance, giveaMountId)
             const result = await runQuery(getlottery, issue)
             const arrA = [result[0].n1, result[0].n2, result[0].n3, result[0].n4, result[0].n5]
             const arrB = [getHistory[i].settle_n1, getHistory[i].settle_n2, getHistory[i].settle_n3, getHistory[i].settle_n4, getHistory[i].settle_n5]
@@ -27,43 +27,43 @@ async function exchange() {
             //更新user的點數
             const updatedBalance = `UPDATE users SET balance=?, updated_at=? WHERE id=?`
             if (newArray.length == 3) {
-                const params = [ amount*2, updated_at, dataID]
+                const params = [amount * 2, updated_at, dataID]
                 await runQuery(giveamount, params)
-                const balance = idBalance[0].balance +amount*2;
-                const giveMoney = [ balance, updated_at, giveaMountId  ]
-                await runQuery (updatedBalance, giveMoney)
+                const balance = idBalance[0].balance + amount * 2;
+                const giveMoney = [balance, updated_at, giveaMountId]
+                await runQuery(updatedBalance, giveMoney)
                 console.log("中2倍");
                 continue
             }
             if (newArray.length == 2) {
-                const params = [ amount*5, updated_at, dataID]
+                const params = [amount * 5, updated_at, dataID]
                 await runQuery(giveamount, params)
-                const balance = idBalance[0].balance +amount*5;
-                const giveMoney = [ balance, updated_at, giveaMountId  ]
-                await runQuery (updatedBalance, giveMoney)
+                const balance = idBalance[0].balance + amount * 5;
+                const giveMoney = [balance, updated_at, giveaMountId]
+                await runQuery(updatedBalance, giveMoney)
                 console.log("中5倍");
                 continue
             }
             if (newArray.length == 1) {
-                const params = [ amount*500, updated_at, dataID]
+                const params = [amount * 500, updated_at, dataID]
                 await runQuery(giveamount, params)
-                const balance = idBalance[0].balance +amount*500;
-                const giveMoney = [ balance, updated_at, giveaMountId  ]
-                await runQuery (updatedBalance, giveMoney)
+                const balance = idBalance[0].balance + amount * 500;
+                const giveMoney = [balance, updated_at, giveaMountId]
+                await runQuery(updatedBalance, giveMoney)
                 console.log("中500倍");
                 continue
             }
             if (newArray.length == 0) {
-                const params = [ amount*1000, updated_at, dataID]
+                const params = [amount * 1000, updated_at, dataID]
                 await runQuery(giveamount, params)
-                const balance = idBalance[0].balance +amount*1000;
-                const giveMoney = [ balance, updated_at, giveaMountId  ]
-                await runQuery (updatedBalance, giveMoney)
+                const balance = idBalance[0].balance + amount * 1000;
+                const giveMoney = [balance, updated_at, giveaMountId]
+                await runQuery(updatedBalance, giveMoney)
                 console.log("中1000倍");
                 continue
             }
             else {
-                const params = [ amount*0, updated_at, dataID]
+                const params = [amount * 0, updated_at, dataID]
                 await runQuery(giveamount, params)
                 console.log("沒中");
                 continue

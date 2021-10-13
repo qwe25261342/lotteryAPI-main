@@ -23,10 +23,10 @@ exports.login = async (req, res) => {
     const usetoken = 'SELECT tokens FROM tokens WHERE user_id = ?'
     await runQuery(usetoken, user_id);
     res.send({
-      data: result, 
-      success: true, 
+      data: result,
+      success: true,
       message: '登入成功!',
-      token: tokenparams[0] 
+      token: tokenparams[0]
     })
   } catch (error) {
     console.log(error);
@@ -78,11 +78,16 @@ exports.getuser = async (req, res) => {
 exports.setball = async (req, res) => {
   try {
     const time = new Date()
-    let open_start = Date.parse(time)
-    const issue = Math.floor(moment(open_start).format('YYYYMMDDHHmm') / 10) + '0'
-    const close_at = `SELECT close_at  FROM lottery_issues WHERE issue = ? `
-    const close = await runQuery(close_at, issue)
-    const closeTime = Date.parse(close[0].close_at);
+    const close_time = moment(Date.parse(time)).format('YYYY-MM-DDTHH:mm')
+    const getIssue = `SELECT issue, close_at FROM lottery_issues WHERE status=0 AND open_at <= ? AND close_at > ?`
+    const alltime = [close_time,close_time]
+    const issue = await runQuery(getIssue, alltime)
+    // const time = new Date()
+    // let open_start = Date.parse(time)
+    // const issue = Math.floor(moment(open_start).format('YYYYMMDDHHmm') / 10) + '0'
+    // const close_at = `SELECT close_at  FROM lottery_issues WHERE issue = ? `
+    // const close = await runQuery(close_at, issue)
+    const closeTime = Date.parse(issue[0].close_at);
     const user_id = req.user_id[0].user_id;
     //關盤一分鐘
     const closeOne = Date.parse(moment(closeTime).add(1, "m"))
@@ -99,13 +104,27 @@ exports.setball = async (req, res) => {
     const settle_n3 = req_params.n3
     const settle_n4 = req_params.n4
     const settle_n5 = req_params.n5
+    let newArr = [settle_n1, settle_n2, settle_n3, settle_n4, settle_n5];
+    //限制最大值與最小值
+    for (let i = 0; i < newArr.length; i++) {
+      newArr[i] = Math.min(Math.max(parseInt(newArr[i]), 0), 31);
+      console.log(newArr[i]);
+      if (newArr[i] > 30 || newArr[i] < 1) {
+        res.send({
+          message:"購買失敗",
+          over: true
+        })
+        return;
+      }
+    }
     //擋輸入值重複
-    const newArr = [settle_n1, settle_n2, settle_n3, settle_n4, settle_n5];
     const repeat = newArr.filter((element, index, arr) => {
       return arr.indexOf(element) !== index;
     })
+    console.log(repeat);
     if (repeat.length > 0) {
       res.send({
+        message:"購買失敗",
         repeat: true
       })
       return;
@@ -115,6 +134,7 @@ exports.setball = async (req, res) => {
     //餘額不足50
     if (userBalance1[0].balance < 50) {
       res.send({
+        message:"餘額不足",
         money: false
       })
       return;
@@ -207,8 +227,11 @@ exports.status = async (req, res) => {
 //取得本期期數
 exports.thisIssue = async (req, res) => {
   try {
-    const getIssue = `SELECT issue FROM lottery_issues WHERE status=0 LIMIT 1`
-    const result = await runQuery(getIssue)
+    const time = new Date()
+    const close_time = moment(Date.parse(time)).format('YYYY-MM-DDTHH:mm')
+    const getIssue = `SELECT issue FROM lottery_issues WHERE status=0 AND open_at <= ? AND close_at > ?`
+    const alltime = [close_time,close_time]
+    const result = await runQuery(getIssue,alltime)
     res.send(result)
   } catch (error) {
     console.log(error);
