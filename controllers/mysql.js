@@ -57,6 +57,18 @@ exports.register = async (req, res) => {
     })
   }
 }
+//登出
+// exports.signout = async function (res, req) {
+//   try {
+//     const res_params = res.body.params
+//     const token = res_params.token;
+//     await runQuery(`DELETE FROM tokens WHERE token = ? `, token);
+//   } catch (error) {
+//     res.send({
+//       error
+//     })
+//   }
+// }
 //取得使用者
 exports.getuser = async (req, res) => {
   try {
@@ -64,13 +76,11 @@ exports.getuser = async (req, res) => {
     const getUser = 'SELECT nickname, balance FROM users where id= ?'
     const result = await runQuery(getUser, user_id)
     res.send(result)
-    //console.log(result)
   } catch (error) {
     console.log(error);
     res.send({
       success: false,
       Message: error
-
     })
   }
 }
@@ -79,15 +89,11 @@ exports.setball = async (req, res) => {
   try {
     const time = new Date()
     const close_time = moment(Date.parse(time)).format('YYYY-MM-DDTHH:mm')
-    const getIssue = `SELECT issue, close_at FROM lottery_issues WHERE status=0 AND open_at <= ? AND close_at > ?`
-    const alltime = [close_time,close_time]
-    const issue = await runQuery(getIssue, alltime)
-    // const time = new Date()
-    // let open_start = Date.parse(time)
-    // const issue = Math.floor(moment(open_start).format('YYYYMMDDHHmm') / 10) + '0'
-    // const close_at = `SELECT close_at  FROM lottery_issues WHERE issue = ? `
-    // const close = await runQuery(close_at, issue)
-    const closeTime = Date.parse(issue[0].close_at);
+    const getIssue = `SELECT issue, close_at FROM lottery_issues WHERE status=0 AND open_at <= ? AND close_at >= ?`
+    const alltime = [close_time, close_time]
+    const result = await runQuery(getIssue, alltime)
+    const issue = result[0].issue
+    const closeTime = Date.parse(result[0].close_at);
     const user_id = req.user_id[0].user_id;
     //關盤一分鐘
     const closeOne = Date.parse(moment(closeTime).add(1, "m"))
@@ -104,43 +110,38 @@ exports.setball = async (req, res) => {
     const settle_n3 = req_params.n3
     const settle_n4 = req_params.n4
     const settle_n5 = req_params.n5
-    let newArr = [settle_n1, settle_n2, settle_n3, settle_n4, settle_n5];
-    //限制最大值與最小值
-    for (let i = 0; i < newArr.length; i++) {
-      newArr[i] = Math.min(Math.max(parseInt(newArr[i]), 0), 31);
-      console.log(newArr[i]);
-      if (newArr[i] > 30 || newArr[i] < 1) {
-        res.send({
-          message:"購買失敗",
-          over: true
-        })
-        return;
-      }
+    const newArr = [settle_n1, settle_n2, settle_n3, settle_n4, settle_n5];
+    const allball = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '30']
+    //限制範圍
+    let newArray = newArr.filter((e) => allball.indexOf(e) === -1)
+    if (newArray.length > 0) {
+      res.send({
+        message: "數字超出範圍",
+        over: true
+      })
+      return;
     }
     //擋輸入值重複
-    const repeat = newArr.filter((element, index, arr) => {
-      return arr.indexOf(element) !== index;
-    })
-    console.log(repeat);
+    const repeat = newArr.filter((element, index, arr) => arr.indexOf(element) !== index)
     if (repeat.length > 0) {
       res.send({
-        message:"購買失敗",
+        message: "購買失敗",
         repeat: true
       })
       return;
     }
+    //餘額不足50
     const getbalance = `SELECT id, balance FROM users WHERE id=? `
     const userBalance1 = await runQuery(getbalance, user_id)
-    //餘額不足50
     if (userBalance1[0].balance < 50) {
       res.send({
-        message:"餘額不足",
+        message: "餘額不足",
         money: false
       })
       return;
     }
-    const params = [user_id, issue, settle_n1, settle_n2, settle_n3, settle_n4, settle_n5, time, time]
     //增加投注資料
+    const params = [user_id, issue, settle_n1, settle_n2, settle_n3, settle_n4, settle_n5, time, time]
     const sql = `INSERT INTO settle_history
       (user_id, issue, settle_n1, settle_n2, settle_n3, settle_n4, settle_n5, status, settle_amount, updated_at, created_at)
        VALUES( ?, ?, ?, ?, ?, ?, ?, 0, 50, ?, ?)`
@@ -153,7 +154,6 @@ exports.setball = async (req, res) => {
       message: "購買成功",
       closing: false
     })
-
   } catch (error) {
     console.log(error);
     res.send({
@@ -168,7 +168,6 @@ exports.history = async (req, res) => {
     const user_id = req.user_id[0].user_id;
     const sql = `SELECT  issue, settle_n1, settle_n2, settle_n3, settle_n4, settle_n5, status, gain_amount,id FROM settle_history WHERE user_id = ?`
     const result = await runQuery(sql, user_id)
-    // console.log(result)
     res.send(result)
   } catch (error) {
     console.log(error);
@@ -188,7 +187,6 @@ exports.setIssue = async (req, res) => {
     for (let i = open_start; i < open_end; i = i + 600000) {
       open_start = Date.parse(moment(open_start).add(10, "m"))
       const issue = moment(open_start).format('YYYYMMDDHHmm')
-      //console.log(issue);//期數
       const opent_at = moment(open_start).format('YYYY-MM-DDTHH:mm')
       const close_time = Date.parse(moment(open_start).add(9, "m"))
       const close_at = moment(close_time).format('YYYY-MM-DDTHH:mm')
@@ -208,13 +206,11 @@ exports.setIssue = async (req, res) => {
     })
   }
 }
-
 //取得已開獎紀錄
 exports.status = async (req, res) => {
   try {
     const getOpenLottery = `SELECT issue, n1, n2, n3,n4, n5 FROM lottery_issues WHERE status = 1`
     const result = await runQuery(getOpenLottery)
-    // console.log(result);
     res.send(result)
   } catch (error) {
     console.log(error);
@@ -229,9 +225,9 @@ exports.thisIssue = async (req, res) => {
   try {
     const time = new Date()
     const close_time = moment(Date.parse(time)).format('YYYY-MM-DDTHH:mm')
-    const getIssue = `SELECT issue FROM lottery_issues WHERE status=0 AND open_at <= ? AND close_at > ?`
-    const alltime = [close_time,close_time]
-    const result = await runQuery(getIssue,alltime)
+    const getIssue = `SELECT issue FROM lottery_issues WHERE status=0 AND open_at <= ? AND close_at >= ?`
+    const alltime = [close_time, close_time]
+    const result = await runQuery(getIssue, alltime)
     res.send(result)
   } catch (error) {
     console.log(error);

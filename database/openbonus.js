@@ -6,12 +6,11 @@ const exchange = require('./exchange')
 const moment = require('moment');
 const logger = require('../database/enve')
 
-async function call() {
+async function openbonus() {
     const getopent = `SELECT issue FROM lottery_issues WHERE status = 0 AND close_at < ? `
     const time = new Date()
     const close_time = moment(Date.parse(time)).format('YYYY-MM-DDTHH:mm')
     const result = await runQuery(getopent, close_time)
-    console.log(close_time);
     for (let i = 0; i < result.length; i++) {
         const issue = result[i].issue
         const ball = await shuffle1()
@@ -24,9 +23,6 @@ async function call() {
         const setissue = `UPDATE lottery_issues SET n1 = ?, n2= ?, n3= ?, n4= ?, n5= ?, updated_at= ?, status=1 WHERE status = 0 AND issue=?`
         await runQuery(setissue, params)
         logger.openBall("openball")
-        const getIssue = `SELECT issue FROM lottery_issues WHERE status=0 AND open_at <= ? AND close_at > ?`
-        const alltime = [close_time, close_time]
-        await runQuery(getIssue, alltime)
         logger.evenIssue("nextIssue")
     }
 }
@@ -35,8 +31,8 @@ rule.second = [0, 10, 20, 30, 40, 50];// 每隔 10秒执行一次
 
 // 启动任务
 let job = schedule.scheduleJob(rule, () => {
-    call()
+    openbonus()
     exchange()
 });
 
-module.exports = call
+module.exports = openbonus
