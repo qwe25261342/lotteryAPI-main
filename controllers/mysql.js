@@ -58,17 +58,17 @@ exports.register = async (req, res) => {
   }
 }
 //登出
-// exports.signout = async function (res, req) {
-//   try {
-//     const res_params = res.body.params
-//     const token = res_params.token;
-//     await runQuery(`DELETE FROM tokens WHERE token = ? `, token);
-//   } catch (error) {
-//     res.send({
-//       error
-//     })
-//   }
-// }
+exports.singout = async function (res, req) {
+  try {
+    const res_params = res.body.params
+    const token = res_params.token;
+    await runQuery(`DELETE FROM tokens WHERE tokens = ? `, token);
+  } catch (error) {
+    res.send({
+      Message: error
+    })
+  }
+}
 //取得使用者
 exports.getuser = async (req, res) => {
   try {
@@ -87,8 +87,8 @@ exports.getuser = async (req, res) => {
 //增加投注資料
 exports.setball = async (req, res) => {
   try {
-    const time = new Date()
-    const close_time = moment(Date.parse(time)).format('YYYY-MM-DDTHH:mm')
+    const time = new Date()           
+    const close_time = moment(Date.parse(time)).format('YYYY-MM-DDTHH:mm')  // 59:30 => 59:00                                             
     const getIssue = `SELECT issue, close_at FROM lottery_issues WHERE status=0 AND open_at <= ? AND close_at >= ?`
     const alltime = [close_time, close_time]
     const result = await runQuery(getIssue, alltime)
