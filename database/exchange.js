@@ -43,44 +43,37 @@ async function exchange() {
             const arrA = map.get(result[i].issue)
             const arrB = [result[i].settle_n1, result[i].settle_n2, result[i].settle_n3, result[i].settle_n4, result[i].settle_n5]
             const newArray = arrB.filter((element) => arrA.indexOf(element) === -1)
-            const giveaMountId = result[i].user_id;
             const dataID = result[i].id;
             const userID = result[i].user_id;
             const amount = result[i].settle_amount;
             const giveMoney = `INSERT INTO temp_table ( id, user_id, balance, status, gain_amount, updated_at) VALUES( ?, ?, ?, 1, ?, ? )`
-            const getbalance = `SELECT id, balance FROM users WHERE id=? `
-            const idBalance = await runQuery(getbalance, giveaMountId)
+            let balance
             if (newArray.length == 3) {
-                const balance = idBalance[0].balance + amount * 2;
-                const params = [dataID, userID, balance, amount * 2, updated_at]
+                const params = [dataID, userID, balance = amount * 2, amount * 2, updated_at]
                 await runQuery(giveMoney, params)
                 console.log("中2倍");
                 continue
             }
             if (newArray.length == 2) {
-                const balance = idBalance[0].balance + amount * 5;
-                const params = [dataID, userID, balance, amount * 5, updated_at]
+                const params = [dataID, userID, balance = amount * 5, amount * 5, updated_at]
                 await runQuery(giveMoney, params)
                 console.log("中5倍");
                 continue
             }
             if (newArray.length == 1) {
-                const balance = idBalance[0].balance + amount * 500;
-                const params = [dataID, userID, balance, amount * 500, updated_at]
+                const params = [dataID, userID, balance = amount * 500, amount * 500, updated_at]
                 await runQuery(giveMoney, params)
                 console.log("中500倍");
                 continue
             }
             if (newArray.length == 0) {
-                const balance = idBalance[0].balance + amount * 1000;
-                const params = [dataID, userID, balance, amount * 1000, updated_at]
+                const params = [dataID, userID, balance = amount * 1000, amount * 1000, updated_at]
                 await runQuery(giveMoney, params)
                 console.log("中1000倍");
                 continue
             }
             else {
-                const balance = idBalance[0].balance + amount * 0;
-                const params = [dataID, userID, balance, amount * 0, updated_at]
+                const params = [dataID, userID, balance = amount * 0, amount * 0, updated_at]
                 await runQuery(giveMoney, params)
                 console.log("沒中");
                 continue
@@ -100,15 +93,15 @@ async function exchange() {
             const joinUsers = `UPDATE users a
                                 INNER JOIN(
                                     SELECT
-                                        t.user_id, t.balance, t.updated_at
+                                        t.user_id, t.updated_at, SUM(balance) as total
                                     FROM
                                         temp_table t
                                         ) b ON a.id = b.user_id
                                     SET
-                                        a.balance = b.balance, a.updated_at = b.updated_at`
+                                        a.balance = a.balance + total, a.updated_at = b.updated_at`
             await runQuery(joinUsers)
             const deleteTemp = `DROP TABLE temp_table`
-            await runQuery(deleteTemp)
+            // await runQuery(deleteTemp)
         }
     } catch (error) {
         console.log(error);

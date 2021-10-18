@@ -12,7 +12,8 @@ async function openbonus() {
     const close_time = moment(Date.parse(time)).format('YYYY-MM-DDTHH:mm')
     const result = await runQuery(getopent, close_time)
     //判斷是否存在temp_realname這張表
-    const create_table = `CREATE TABLE temp_realname ( issue VARCHAR(255), n1 VARCHAR(255),n2 VARCHAR(255),n3 VARCHAR(255),n4 VARCHAR(255),n5 VARCHAR(255),status VARCHAR(255))`
+    const create_table = `CREATE TABLE temp_realname 
+                            ( issue VARCHAR(255), n1 VARCHAR(255),n2 VARCHAR(255),n3 VARCHAR(255),n4 VARCHAR(255),n5 VARCHAR(255),status VARCHAR(255))`
     const table = `SELECT table_name FROM information_schema.TABLES WHERE table_name ='temp_realname'`
     // 無須開獎return
     if(result.length == 0){
