@@ -1,7 +1,7 @@
 "use strict"
 const lottery = (io) => {
     const openbonus = require('./openbonus');
-    const logger = require('./enve');
+    const logger = require('./event');
     //收到值 用socket emit傳送給前端
     logger.on('openBall', a => {
         io.emit('receive-openBall', a)

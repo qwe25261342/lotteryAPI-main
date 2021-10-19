@@ -184,18 +184,26 @@ exports.setIssue = async (req, res) => {
     const updated_at = new Date()
     let open_start = Date.parse(moment().startOf('day'))//今天開始的00:00:00.00
     const open_end = Date.parse(moment().endOf('month')) //2021-10-31 23:59:00
+    const issuesArr = []
     for (let i = open_start; i < open_end; i = i + 600000) {
       open_start = Date.parse(moment(open_start).add(10, "m"))
       const issue = moment(open_start).format('YYYYMMDDHHmm')
       const opent_at = moment(open_start).format('YYYY-MM-DDTHH:mm')
       const close_time = Date.parse(moment(open_start).add(9, "m"))
       const close_at = moment(close_time).format('YYYY-MM-DDTHH:mm')
-      const setissue = `INSERT INTO lottery_issues 
-             (issue,  open_at, close_at, updated_at, created_at)
-             VALUES ( ?, ?, ?, ?, ?)`
-      const params = [issue, opent_at, close_at, updated_at, created_at]
-      await runQuery(setissue, params)
+      issuesArr.push([issue, opent_at, close_at, updated_at, created_at])
+      // const setissue = `INSERT INTO lottery_issues 
+      //        (issue,  opent_at, close_at, updated_at, created_at)
+      //        VALUES ( ?, ?, ?, ?, ?)`
+      // const params = [issue, opent_at, close_at, updated_at, created_at]
+      // await runQuery(setissue, params)
     }
+    const setissue = `INSERT INTO lottery_issues 
+              (issue,  open_at, close_at, updated_at, created_at)
+              VALUES ?`
+       const params = [issuesArr]
+       console.log(params);
+       await runQuery(setissue, params)
     res.send({
       message: "增加期數成功"
     })

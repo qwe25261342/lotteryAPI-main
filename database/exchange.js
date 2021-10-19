@@ -31,15 +31,10 @@ async function exchange() {
         for (let i = 0; i < lotteryIssue.length; i++) {
             map.set(lotteryIssue[i].issue, [lotteryIssue[i].n1, lotteryIssue[i].n2, lotteryIssue[i].n3, lotteryIssue[i].n4, lotteryIssue[i].n5])
         }
-        //判斷是否存在temp_table這張表
-        const create_table = `CREATE TABLE temp_table (id VARCHAR(255), user_id VARCHAR(255), balance VARCHAR(255), gain_amount VARCHAR(255),status VARCHAR(255) ,updated_at datetime)`
-        const table = `SELECT table_name FROM information_schema.TABLES WHERE table_name ='temp_table'`
+        const create_table = `CREATE TEMPORARY TABLE temp_table 
+                        (id VARCHAR(255), user_id VARCHAR(255), balance VARCHAR(255), gain_amount VARCHAR(255),status VARCHAR(255) ,updated_at datetime)`
         await runQuery(create_table)
-        const haveTable = await runQuery(table)
         for (let i = 0; i < result.length; i++) {
-            if (haveTable.length == 0) {
-                return
-            }
             const arrA = map.get(result[i].issue)
             const arrB = [result[i].settle_n1, result[i].settle_n2, result[i].settle_n3, result[i].settle_n4, result[i].settle_n5]
             const newArray = arrB.filter((element) => arrA.indexOf(element) === -1)
@@ -47,7 +42,7 @@ async function exchange() {
             const userID = result[i].user_id;
             const amount = result[i].settle_amount;
             const giveMoney = `INSERT INTO temp_table ( id, user_id, balance, status, gain_amount, updated_at) VALUES( ?, ?, ?, 1, ?, ? )`
-            let balance
+            let balance = Number
             if (newArray.length == 3) {
                 const params = [dataID, userID, balance = amount * 2, amount * 2, updated_at]
                 await runQuery(giveMoney, params)
@@ -79,30 +74,29 @@ async function exchange() {
                 continue
             }
         }
-        if (haveTable.length != 0) {
             const joinTest = `UPDATE settle_history a 
                                 INNER JOIN(
                                     SELECT 
                                         t.id, t.gain_amount, t.status, t.updated_at
                                     FROM 
-                                        temp_table t
-                                        ) b ON a.id = b.id 
+                                        temp_table t) b
+                                        ON a.id = b.id 
                                     SET 
                                         a.gain_amount = b.gain_amount, a.status = b.status, a.updated_at = b.updated_at`
             await runQuery(joinTest)
             const joinUsers = `UPDATE users a
                                 INNER JOIN(
                                     SELECT
-                                        t.user_id, t.updated_at, SUM(balance) as total
+                                        t.user_id, t.updated_at, SUM(t.balance) as total
                                     FROM
                                         temp_table t
-                                        ) b ON a.id = b.user_id
+                                        GROUP BY t.user_id) b
+                                        ON a.id = b.user_id
                                     SET
                                         a.balance = a.balance + total, a.updated_at = b.updated_at`
             await runQuery(joinUsers)
             const deleteTemp = `DROP TABLE temp_table`
-            // await runQuery(deleteTemp)
-        }
+            await runQuery(deleteTemp)
     } catch (error) {
         console.log(error);
     }

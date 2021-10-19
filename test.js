@@ -119,3 +119,12 @@
 // }('123')
 // i.speak();//123456
 
+// let a =new Set([1,2,3,6]);
+// let b =new Set([4,5,6,8,9]);
+// //併集
+// let union = new Set([...a,...b]) //Set { 1, 2, 3, 6, 4, 5, 8, 9 }
+// //交集
+// let intersect = new Set([...a].filter(x => b.has(x)));//Set { 6 }
+//  console.log(intersect); 
+
+
