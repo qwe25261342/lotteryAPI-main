@@ -5,6 +5,7 @@ async function exchange() {
     try {
         const sql = `SELECT * FROM settle_history WHERE status=0`
         const issuesArr = []
+        let temp_tableArr = []
         const updated_at = new Date()
         const result = await runQuery(sql)
         for (let i = 0; i < result.length; i++) {
@@ -41,40 +42,37 @@ async function exchange() {
             const dataID = result[i].id;
             const userID = result[i].user_id;
             const amount = result[i].settle_amount;
-            const giveMoney = `INSERT INTO temp_table ( id, user_id, balance, status, gain_amount, updated_at) VALUES( ?, ?, ?, 1, ?, ? )`
             let balance = Number
             if (newArray.length == 3) {
-                const params = [dataID, userID, balance = amount * 2, amount * 2, updated_at]
-                await runQuery(giveMoney, params)
+                temp_tableArr.push([dataID, userID, balance = amount * 2, amount * 2, updated_at, 1])
                 console.log("中2倍");
                 continue
             }
             if (newArray.length == 2) {
-                const params = [dataID, userID, balance = amount * 5, amount * 5, updated_at]
-                await runQuery(giveMoney, params)
+                temp_tableArr.push([dataID, userID, balance = amount * 5, amount * 5, updated_at, 1])
                 console.log("中5倍");
                 continue
             }
             if (newArray.length == 1) {
-                const params = [dataID, userID, balance = amount * 500, amount * 500, updated_at]
-                await runQuery(giveMoney, params)
+                temp_tableArr.push([dataID, userID, balance = amount * 500, amount * 500, updated_at, 1])
                 console.log("中500倍");
                 continue
             }
             if (newArray.length == 0) {
-                const params = [dataID, userID, balance = amount * 1000, amount * 1000, updated_at]
-                await runQuery(giveMoney, params)
+                temp_tableArr.push([dataID, userID, balance = amount * 1000, amount * 1000, updated_at, 1])
                 console.log("中1000倍");
                 continue
             }
             else {
-                const params = [dataID, userID, balance = amount * 0, amount * 0, updated_at]
-                await runQuery(giveMoney, params)
+                temp_tableArr.push([dataID, userID, balance = amount * 0, amount * 0, updated_at, 1])
                 console.log("沒中");
                 continue
             }
         }
-            const joinTest = `UPDATE settle_history a 
+        const giveMoney = `INSERT INTO temp_table ( id, user_id, balance, gain_amount, updated_at, status) VALUES ?`
+        const params = [temp_tableArr]
+        await runQuery(giveMoney, params)
+        const joinTest = `UPDATE settle_history a 
                                 INNER JOIN(
                                     SELECT 
                                         t.id, t.gain_amount, t.status, t.updated_at
@@ -83,8 +81,8 @@ async function exchange() {
                                         ON a.id = b.id 
                                     SET 
                                         a.gain_amount = b.gain_amount, a.status = b.status, a.updated_at = b.updated_at`
-            await runQuery(joinTest)
-            const joinUsers = `UPDATE users a
+        await runQuery(joinTest)
+        const joinUsers = `UPDATE users a
                                 INNER JOIN(
                                     SELECT
                                         t.user_id, t.updated_at, SUM(t.balance) as total
@@ -94,9 +92,9 @@ async function exchange() {
                                         ON a.id = b.user_id
                                     SET
                                         a.balance = a.balance + total, a.updated_at = b.updated_at`
-            await runQuery(joinUsers)
-            const deleteTemp = `DROP TABLE temp_table`
-            await runQuery(deleteTemp)
+        await runQuery(joinUsers)
+        const deleteTemp = `DROP TABLE temp_table`
+        await runQuery(deleteTemp)
     } catch (error) {
         console.log(error);
     }

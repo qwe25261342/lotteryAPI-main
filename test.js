@@ -127,4 +127,38 @@
 // let intersect = new Set([...a].filter(x => b.has(x)));//Set { 6 }
 //  console.log(intersect); 
 
+// var a = [];
+// a.name ='ray'//[ name: 'ray' ]
+// a[99] = 1 ; //[ <99 empty items>, 1 ]
+// console.log(a);
+
+// var a;
+// a; // undefined
+// a = 5;
+// typeof a; // number
+// var a;
+// console.log(a); // 5
+
+// var a = 1;
+// var b = 2;
+// typeof a;
+// a.name = 'Ray';
+// console.log(a.name);//undefined
+
+// Number.prototype.name = 'Ray';
+// console.log(a.name);//Ray
+// console.log(b.name);//Ray
+
+// delete a.name; // return true;
+// console.log(a.name); // Ray
+
+// Object.prototype.print =function(){
+//     console.log(this);
+// }
+// var obj = new Object()
+// obj.print() //{}
+
+//属性描述对象
+// var obj = { p: 'a' };
+// console.log(Object.getOwnPropertyDescriptor(obj, 'p'));//{ value: 'a', 可寫writable: true, 可舉enumerable: true, 可設定configurable: true }
 

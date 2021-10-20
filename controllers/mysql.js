@@ -87,7 +87,7 @@ exports.getuser = async (req, res) => {
 //增加投注資料
 exports.setball = async (req, res) => {
   try {
-    const time = new Date()           
+    const time = new Date()
     const close_time = moment(Date.parse(time)).format('YYYY-MM-DDTHH:mm')  // 59:30 => 59:00                                             
     const getIssue = `SELECT issue, close_at FROM lottery_issues WHERE status=0 AND open_at <= ? AND close_at >= ?`
     const alltime = [close_time, close_time]
@@ -184,7 +184,7 @@ exports.setIssue = async (req, res) => {
     const updated_at = new Date()
     let open_start = Date.parse(moment().startOf('day'))//今天開始的00:00:00.00
     const open_end = Date.parse(moment().endOf('month')) //2021-10-31 23:59:00
-    const issuesArr = []
+    let issuesArr = []
     for (let i = open_start; i < open_end; i = i + 600000) {
       open_start = Date.parse(moment(open_start).add(10, "m"))
       const issue = moment(open_start).format('YYYYMMDDHHmm')
@@ -192,18 +192,12 @@ exports.setIssue = async (req, res) => {
       const close_time = Date.parse(moment(open_start).add(9, "m"))
       const close_at = moment(close_time).format('YYYY-MM-DDTHH:mm')
       issuesArr.push([issue, opent_at, close_at, updated_at, created_at])
-      // const setissue = `INSERT INTO lottery_issues 
-      //        (issue,  opent_at, close_at, updated_at, created_at)
-      //        VALUES ( ?, ?, ?, ?, ?)`
-      // const params = [issue, opent_at, close_at, updated_at, created_at]
-      // await runQuery(setissue, params)
     }
     const setissue = `INSERT INTO lottery_issues 
               (issue,  open_at, close_at, updated_at, created_at)
               VALUES ?`
-       const params = [issuesArr]
-       console.log(params);
-       await runQuery(setissue, params)
+    const params = [issuesArr]
+    await runQuery(setissue, params)
     res.send({
       message: "增加期數成功"
     })
@@ -243,5 +237,21 @@ exports.thisIssue = async (req, res) => {
       success: false,
       message: error
     })
+  }
+}
+exports.token = async (req,res,next) => {
+  try {
+      const req_params = req.body
+      const token = req_params.token
+      const msgToken = 'SELECT user_id FROM tokens where tokens= ?'
+      const result = await runQuery(msgToken, token)
+      req.user_id = result
+      next();
+  } catch (error) {
+      console.log(error);
+      res.send({
+          success: false,
+          message: error
+      })
   }
 }
